@@ -1,14 +1,13 @@
 package pokeapi
 
 import (
-	"fmt"
-	"encoding/json"
-	"io"
-	"http"
 	"bytes"
+	"encoding/json"
+	"http"
+	"io"
 )
 
-func encode(data any) (io.Reader, error){
+func encode(data any) (io.Reader, error) {
 	blob, err := json.Marshal(data)
 	if err != nil {
 		return nil, err
@@ -17,7 +16,7 @@ func encode(data any) (io.Reader, error){
 	return bytes.NewReader(blob), nil
 }
 
-func decode[T any](data io.Reader) (T, error){
+func decode[T any](data io.Reader) (T, error) {
 	var results T
 	if err := json.NewDecoder(data).Decode(&results); err != nil {
 		return results, err
@@ -26,8 +25,7 @@ func decode[T any](data io.Reader) (T, error){
 	return results, nil
 }
 
-
-func callEndpoint[T, U any](method, endpoint string, data T) (U, error){
+func callEndpoint[T, U any](method, endpoint string, data T) (U, error) {
 	var zero U
 
 	payload, err := encode(data)
@@ -55,18 +53,15 @@ func callEndpoint[T, U any](method, endpoint string, data T) (U, error){
 }
 
 type LocationRequest struct {
-	
 }
 
 type Location struct {
-	
 }
 
 type LocationResponse struct {
-	
 }
 
-func CallMap(requestData LocationRequest) LocationResponse, error {
+func CallMap(requestData LocationRequest) (LocationResponse, error) {
 	endpoint := "https://www.pokeapi.com/location"
 
 	locationResponse, err := callEndpoint[LocationRequest, LocationResponse](
