@@ -1,15 +1,12 @@
 package main
 
 import (
-	"fmt"
 	"bufio"
+	"fmt"
 	"os"
-	
-	"github.com/mmio/pokedex/pokeapi"
 )
 
 func commandExit(config *Config) error {
-	pokeapi.CallMap()
 	fmt.Println("Closing the Pokedex... Goodbye!")
 	os.Exit(0)
 
@@ -19,45 +16,43 @@ func commandExit(config *Config) error {
 func commandHelp(config *Config) error {
 	fmt.Println(`
 Welcome to the Pokedex!
-Usage:
-`)
+Usage:`)
 
 	for _, command := range config.commands {
 		_, err := fmt.Printf("%v: %v\n", command.name, command.description)
 		if err != nil {
 			return err
-		}	
+		}
 	}
 
-	return nil	
+	return nil
 }
 
 type cliCommand struct {
-	name string
+	name        string
 	description string
-	callback func(*Config) error
+	callback    func(*Config) error
 }
 
 type Config struct {
 	commands map[string]cliCommand
-	
 }
 
 func main() {
 	config := Config{
 		commands: map[string]cliCommand{
 			"exit": {
-				name: "exit",
+				name:        "exit",
 				description: "Exits the Pokedex",
-				callback: commandExit,
+				callback:    commandExit,
 			}, "help": {
-				name: "help",
+				name:        "help",
 				description: "Shows help for the Pokedex",
-				callback: commandHelp,
+				callback:    commandHelp,
 			},
 		},
 	}
-	
+
 	scanner := bufio.NewScanner(os.Stdin)
 
 	var input string
@@ -67,9 +62,10 @@ func main() {
 		fmt.Print("Pokedex > ")
 
 		if !scanner.Scan() {
+			fmt.Printf("Couldn't scan input: %v", scanner.Err())
 			break
 		}
-		
+
 		input = scanner.Text()
 		safeInput = cleanInput(input)
 
@@ -83,7 +79,7 @@ func main() {
 			fmt.Printf("Unknown command '%v'\n", safeInput[0])
 			continue
 		}
-		
+
 		if err := command.callback(&config); err != nil {
 			fmt.Println("Couldn't execute command")
 			continue

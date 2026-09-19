@@ -1,39 +1,38 @@
 package main
 
 import (
-	"fmt"
 	"testing"
 )
 
 func TestCleanInput(t *testing.T) {
 	cases := []struct {
-		input string
+		input    string
 		expected []string
-	} {
+	}{
 		{
-			input: " hello world ",
-				expected: []string{"hello", "world"},
-			},
-			{
-			input: "",
-				expected: []string{},
-			},
-			{
-			input: " ",
-				expected: []string{},
-			},
-			{
-			input: fmt.Sprintf("\n"),
-				expected: []string{},			
-			},
-			{
-			input: "apwoeirjpaoweifjpawoiefjpoaiwefjpaiwefjpawifjepoiawjfepoijawepfoijawoefijapoweijpowaiefjpoawifj",
-				expected: []string{"apwoeirjpaoweifjpawoiefjpoaiwefjpaiwefjpawifjepoiawjfepoijawepfoijawoefijapoweijpowaiefjpoawifj"},
-			},
-			{
-			input: "a b c d",
-				expected: []string{"a", "b", "c", "d"},
-			},
+			input:    " hello world ",
+			expected: []string{"hello", "world"},
+		},
+		{
+			input:    "",
+			expected: []string{},
+		},
+		{
+			input:    " ",
+			expected: []string{},
+		},
+		{
+			input:    "\n",
+			expected: []string{},
+		},
+		{
+			input:    "apwoeirjpaoweifjpawoiefjpoaiwefjpaiwefjpawifjepoiawjfepoijawepfoijawoefijapoweijpowaiefjpoawifj",
+			expected: []string{"apwoeirjpaoweifjpawoiefjpoaiwefjpaiwefjpawifjepoiawjfepoijawepfoijawoefijapoweijpowaiefjpoawifj"},
+		},
+		{
+			input:    "a b c d",
+			expected: []string{"a", "b", "c", "d"},
+		},
 	}
 
 	for _, c := range cases {
@@ -52,5 +51,5 @@ func TestCleanInput(t *testing.T) {
 			}
 		}
 	}
-	
+
 }
