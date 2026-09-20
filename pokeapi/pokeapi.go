@@ -44,6 +44,7 @@ func (pokeAPIState *PokeAPIState) CallMap() (LocationResponse, error) {
 		return LocationResponse{}, err
 	}
 
+	pokeAPIState.Previous = locationResponse.Previous
 	pokeAPIState.Next = &locationResponse.Next
 
 	return locationResponse, nil
@@ -67,6 +68,7 @@ func (pokeAPIState *PokeAPIState) CallMapBack() (LocationResponse, error) {
 	}
 
 	pokeAPIState.Previous = locationResponse.Previous
+	pokeAPIState.Next = &locationResponse.Next
 
 	return locationResponse, nil
 }
