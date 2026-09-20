@@ -16,10 +16,9 @@ type Location struct {
 	URL  string `json:"url"`
 }
 
-// TODO: Next might have to be a pointer as well, if we get to the end it might be null?
 type LocationResponse struct {
 	Count    int        `json:"count"`
-	Next     string     `json:"next"`
+	Next     *string    `json:"next"`
 	Previous *string    `json:"previous"`
 	Results  []Location `json:"results"`
 }
@@ -31,6 +30,7 @@ func NewPokeAPI() PokeAPIState {
 func (pokeAPIState *PokeAPIState) CallMap() (LocationResponse, error) {
 	endpoint := "https://pokeapi.co/api/v2/location-area/"
 
+	// TODO: This is most likely incorrect, e.g. when we get to the end we wrap, which we probably don't want (e.g. we go to the beginning)
 	if pokeAPIState.Next != nil {
 		endpoint = *pokeAPIState.Next
 	}
@@ -46,7 +46,7 @@ func (pokeAPIState *PokeAPIState) CallMap() (LocationResponse, error) {
 	}
 
 	pokeAPIState.Previous = locationResponse.Previous
-	pokeAPIState.Next = &locationResponse.Next
+	pokeAPIState.Next = locationResponse.Next
 
 	return locationResponse, nil
 }
@@ -69,7 +69,7 @@ func (pokeAPIState *PokeAPIState) CallMapBack() (LocationResponse, error) {
 	}
 
 	pokeAPIState.Previous = locationResponse.Previous
-	pokeAPIState.Next = &locationResponse.Next
+	pokeAPIState.Next = locationResponse.Next
 
 	return locationResponse, nil
 }
