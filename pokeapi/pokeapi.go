@@ -45,7 +45,7 @@ func callEndpoint[T, U any](method, endpoint string, data T) (U, error) {
 	}
 	defer response.Body.Close()
 
-	if response.StatusCode < 200 && response.StatusCode > 299 {
+	if response.StatusCode < 200 || response.StatusCode > 299 {
 		return zero, fmt.Errorf("Bad status code: %v", response.StatusCode)
 	}
 
