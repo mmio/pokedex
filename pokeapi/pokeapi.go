@@ -16,6 +16,7 @@ type Location struct {
 	URL  string `json:"url"`
 }
 
+// TODO: Next might have to be a pointer as well, if we get to the end it might be null?
 type LocationResponse struct {
 	Count    int        `json:"count"`
 	Next     string     `json:"next"`
