@@ -3,8 +3,9 @@ package pokeapi
 import (
 	"bytes"
 	"encoding/json"
-	"http"
+	"fmt"
 	"io"
+	"net/http"
 )
 
 func encode(data any) (io.Reader, error) {
@@ -42,9 +43,13 @@ func callEndpoint[T, U any](method, endpoint string, data T) (U, error) {
 	if err != nil {
 		return zero, err
 	}
-	defer response.body.Close()
+	defer response.Body.Close()
 
-	result, err := decode[U](response.body)
+	if response.StatusCode < 200 && response.StatusCode > 299 {
+		return zero, fmt.Errorf("Bad status code: %v", response.StatusCode)
+	}
+
+	result, err := decode[U](response.Body)
 	if err != nil {
 		return zero, err
 	}
@@ -52,27 +57,67 @@ func callEndpoint[T, U any](method, endpoint string, data T) (U, error) {
 	return result, nil
 }
 
-type LocationRequest struct {
+type PokeAPIState struct {
+	Next     *string
+	Previous *string
 }
 
 type Location struct {
+	Name string `json:"name"`
+	URL  string `json:"url"`
 }
 
 type LocationResponse struct {
+	Count    int        `json:"count"`
+	Next     string     `json:"next"`
+	Previous *string    `json:"previous"`
+	Results  []Location `json:"results"`
 }
 
-func CallMap(requestData LocationRequest) (LocationResponse, error) {
-	endpoint := "https://www.pokeapi.com/location"
+func NewPokeAPI() PokeAPIState {
+	return PokeAPIState{}
+}
 
-	locationResponse, err := callEndpoint[LocationRequest, LocationResponse](
-		http.POSTMethod,
+func (pokeAPIState *PokeAPIState) CallMap() (LocationResponse, error) {
+	endpoint := "https://pokeapi.co/api/v2/location-area/"
+
+	if pokeAPIState.Next != nil {
+		endpoint = *pokeAPIState.Next
+	}
+
+	locationResponse, err := callEndpoint[any, LocationResponse](
+		http.MethodGet,
 		endpoint,
-		requestData,
+		struct{}{},
 	)
 
 	if err != nil {
 		return LocationResponse{}, err
 	}
+
+	pokeAPIState.Next = &locationResponse.Next
+
+	return locationResponse, nil
+}
+
+func (pokeAPIState *PokeAPIState) CallMapBack() (LocationResponse, error) {
+	endpoint := "https://pokeapi.co/api/v2/location-area/"
+
+	if pokeAPIState.Previous != nil {
+		endpoint = *pokeAPIState.Previous
+	}
+
+	locationResponse, err := callEndpoint[any, LocationResponse](
+		http.MethodGet,
+		endpoint,
+		struct{}{},
+	)
+
+	if err != nil {
+		return LocationResponse{}, err
+	}
+
+	pokeAPIState.Previous = locationResponse.Previous
 
 	return locationResponse, nil
 }

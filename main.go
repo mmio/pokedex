@@ -4,6 +4,8 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+
+	"github.com/mmio/pokedex/pokeapi"
 )
 
 func commandExit(config *Config) error {
@@ -28,6 +30,32 @@ Usage:`)
 	return nil
 }
 
+func commandMap(config *Config) error {
+	response, err := config.pokeAPI.CallMap()
+	if err != nil {
+		return err
+	}
+
+	for _, location := range response.Results {
+		fmt.Println(location.Name)
+	}
+
+	return nil
+}
+
+func commandMapBack(config *Config) error {
+	response, err := config.pokeAPI.CallMapBack()
+	if err != nil {
+		return err
+	}
+
+	for _, location := range response.Results {
+		fmt.Println(location.Name)
+	}
+
+	return nil
+}
+
 type cliCommand struct {
 	name        string
 	description string
@@ -35,6 +63,7 @@ type cliCommand struct {
 }
 
 type Config struct {
+	pokeAPI  pokeapi.PokeAPIState
 	commands map[string]cliCommand
 }
 
@@ -49,8 +78,17 @@ func main() {
 				name:        "help",
 				description: "Shows help for the Pokedex",
 				callback:    commandHelp,
+			}, "map": {
+				name:        "map",
+				description: "Shows next location areas",
+				callback:    commandMap,
+			}, "mapb": {
+				name:        "mapb",
+				description: "Shows previous location areas",
+				callback:    commandMapBack,
 			},
 		},
+		pokeAPI: pokeapi.NewPokeAPI(),
 	}
 
 	scanner := bufio.NewScanner(os.Stdin)
