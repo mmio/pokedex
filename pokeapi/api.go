@@ -1,14 +1,16 @@
 package pokeapi
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/mmio/pokedex/utilities"
 )
 
 type PokeAPIState struct {
-	Next     *string
-	Previous *string
+	Next          *string
+	Previous      *string
+	EmptyGetCache *utilities.Cache
 }
 
 type Location struct {
@@ -24,7 +26,9 @@ type LocationResponse struct {
 }
 
 func NewPokeAPI() PokeAPIState {
-	return PokeAPIState{}
+	return PokeAPIState{
+		EmptyGetCache: utilities.NewCache(5),
+	}
 }
 
 func (pokeAPIState *PokeAPIState) CallMap() (LocationResponse, error) {
@@ -35,6 +39,20 @@ func (pokeAPIState *PokeAPIState) CallMap() (LocationResponse, error) {
 		endpoint = *pokeAPIState.Next
 	}
 
+	// check cache
+	response, ok := pokeAPIState.EmptyGetCache.Get(endpoint)
+	if ok {
+		locationResponse, ok := response.(LocationResponse)
+		if !ok {
+			return LocationResponse{}, errors.New("Bad type in cache")
+		}
+
+		pokeAPIState.Previous = locationResponse.Previous
+		pokeAPIState.Next = locationResponse.Next
+		return locationResponse, nil
+	}
+
+	// cache miss
 	locationResponse, err := utilities.CallEndpoint[any, LocationResponse](
 		http.MethodGet,
 		endpoint,
@@ -44,6 +62,9 @@ func (pokeAPIState *PokeAPIState) CallMap() (LocationResponse, error) {
 	if err != nil {
 		return LocationResponse{}, err
 	}
+
+	// update
+	pokeAPIState.EmptyGetCache.Add(endpoint, locationResponse)
 
 	pokeAPIState.Previous = locationResponse.Previous
 	pokeAPIState.Next = locationResponse.Next
@@ -58,6 +79,20 @@ func (pokeAPIState *PokeAPIState) CallMapBack() (LocationResponse, error) {
 		endpoint = *pokeAPIState.Previous
 	}
 
+	// check cache
+	response, ok := pokeAPIState.EmptyGetCache.Get(endpoint)
+	if ok {
+		locationResponse, ok := response.(LocationResponse)
+		if !ok {
+			return LocationResponse{}, errors.New("Bad type in cache")
+		}
+
+		pokeAPIState.Previous = locationResponse.Previous
+		pokeAPIState.Next = locationResponse.Next
+		return locationResponse, nil
+	}
+
+	// cache miss
 	locationResponse, err := utilities.CallEndpoint[any, LocationResponse](
 		http.MethodGet,
 		endpoint,
@@ -67,6 +102,9 @@ func (pokeAPIState *PokeAPIState) CallMapBack() (LocationResponse, error) {
 	if err != nil {
 		return LocationResponse{}, err
 	}
+
+	// update
+	pokeAPIState.EmptyGetCache.Add(endpoint, locationResponse)
 
 	pokeAPIState.Previous = locationResponse.Previous
 	pokeAPIState.Next = locationResponse.Next

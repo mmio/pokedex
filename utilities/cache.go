@@ -7,7 +7,7 @@ import (
 
 type cacheEntry struct {
 	createdAt time.Time
-	val       []byte
+	val       any
 }
 
 type Cache struct {
@@ -36,14 +36,14 @@ func NewCache(interval time.Duration) *Cache {
 	return &cache
 }
 
-func (c *Cache) Add(key string, value []byte) {
+func (c *Cache) Add(key string, value any) {
 	c.entries[key] = cacheEntry{
 		createdAt: time.Now(),
 		val:       value,
 	}
 }
 
-func (c *Cache) Get(key string) ([]byte, bool) {
+func (c *Cache) Get(key string) (any, bool) {
 	entry, ok := c.entries[key]
 	if !ok {
 		return nil, false
