@@ -8,24 +8,6 @@ import (
 	"github.com/mmio/pokedex/utilities"
 )
 
-type PokeAPIState struct {
-	Next          *string
-	Previous      *string
-	EmptyGetCache *utilities.Cache
-}
-
-type Location struct {
-	Name string `json:"name"`
-	URL  string `json:"url"`
-}
-
-type LocationResponse struct {
-	Count    int        `json:"count"`
-	Next     *string    `json:"next"`
-	Previous *string    `json:"previous"`
-	Results  []Location `json:"results"`
-}
-
 func NewPokeAPI() (PokeAPIState, error) {
 	duration_30s, err := time.ParseDuration("30s")
 	if err != nil {
@@ -76,6 +58,37 @@ func (pokeAPIState *PokeAPIState) CallMap() (LocationResponse, error) {
 	pokeAPIState.Next = locationResponse.Next
 
 	return locationResponse, nil
+}
+
+func (pokeAPIState *PokeAPIState) CallExplore(name string) (AreaResponse, error) {
+	endpoint := "https://pokeapi.co/api/v2/location-area/" + name
+
+	// check cache
+	response, ok := pokeAPIState.EmptyGetCache.Get(endpoint)
+	if ok {
+		areaResponse, ok := response.(AreaResponse)
+		if !ok {
+			return AreaResponse{}, errors.New("Bad type in cache")
+		}
+
+		return areaResponse, nil
+	}
+
+	// cache miss
+	areaResponse, err := utilities.CallEndpoint[any, AreaResponse](
+		http.MethodGet,
+		endpoint,
+		struct{}{},
+	)
+
+	if err != nil {
+		return AreaResponse{}, err
+	}
+
+	// update
+	pokeAPIState.EmptyGetCache.Add(endpoint, areaResponse)
+
+	return areaResponse, nil
 }
 
 func (pokeAPIState *PokeAPIState) CallMapBack() (LocationResponse, error) {

@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"os"
 
@@ -56,6 +57,27 @@ func commandMapBack(config *Config) error {
 	return nil
 }
 
+func commandExplore(config *Config) error {
+	if len(config.arguments) == 0 {
+		return errors.New("Explore needs the name of the location as argument")
+	}
+
+	locationName := config.arguments[0]
+
+	response, err := config.pokeAPI.CallExplore(locationName)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("Exploring pastoria-city-area...")
+	fmt.Println("Found Pokemon:")
+	for _, encounter := range response.PokemonEncounters {
+		fmt.Println("-", encounter.Pokemon.Name)
+	}
+
+	return nil
+}
+
 type cliCommand struct {
 	name        string
 	description string
@@ -63,8 +85,10 @@ type cliCommand struct {
 }
 
 type Config struct {
-	pokeAPI  pokeapi.PokeAPIState
-	commands map[string]cliCommand
+	pokeAPI   pokeapi.PokeAPIState
+	commands  map[string]cliCommand
+	command   string
+	arguments []string
 }
 
 func main() {
@@ -92,9 +116,15 @@ func main() {
 				name:        "mapb",
 				description: "Shows previous location areas",
 				callback:    commandMapBack,
+			}, "explore": {
+				name:        "explore",
+				description: "Shows pokemons at location",
+				callback:    commandExplore,
 			},
 		},
-		pokeAPI: pas,
+		pokeAPI:   pas,
+		command:   "",
+		arguments: []string{},
 	}
 
 	scanner := bufio.NewScanner(os.Stdin)
@@ -117,6 +147,8 @@ func main() {
 			continue
 		}
 
+		config.command = safeInput[0]
+		config.arguments = safeInput[1:]
 		commandName = safeInput[0]
 		command, ok := config.commands[commandName]
 		if !ok {
@@ -125,7 +157,7 @@ func main() {
 		}
 
 		if err := command.callback(&config); err != nil {
-			fmt.Println("Couldn't execute command")
+			fmt.Println("Couldn't execute command", err)
 			continue
 		}
 	}
