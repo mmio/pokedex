@@ -28,7 +28,7 @@ func NewCache(interval time.Duration) *Cache {
 		mutex:    sync.Mutex{},
 		entries:  map[string]cacheEntry{},
 		interval: interval,
-		ticker:   *time.NewTicker(1),
+		ticker:   *time.NewTicker(interval),
 	}
 
 	go cacheCleaner(&cache)
@@ -37,6 +37,9 @@ func NewCache(interval time.Duration) *Cache {
 }
 
 func (c *Cache) Add(key string, value any) {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+
 	c.entries[key] = cacheEntry{
 		createdAt: time.Now(),
 		val:       value,
@@ -44,6 +47,9 @@ func (c *Cache) Add(key string, value any) {
 }
 
 func (c *Cache) Get(key string) (any, bool) {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+
 	entry, ok := c.entries[key]
 	if !ok {
 		return nil, false

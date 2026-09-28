@@ -68,6 +68,12 @@ type Config struct {
 }
 
 func main() {
+	pas, err := pokeapi.NewPokeAPI()
+	if err != nil {
+		fmt.Println("Error initializing poke api", err)
+		os.Exit(0)
+	}
+
 	config := Config{
 		commands: map[string]cliCommand{
 			"exit": {
@@ -88,7 +94,7 @@ func main() {
 				callback:    commandMapBack,
 			},
 		},
-		pokeAPI: pokeapi.NewPokeAPI(),
+		pokeAPI: pas,
 	}
 
 	scanner := bufio.NewScanner(os.Stdin)

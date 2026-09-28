@@ -3,6 +3,7 @@ package pokeapi
 import (
 	"errors"
 	"net/http"
+	"time"
 
 	"github.com/mmio/pokedex/utilities"
 )
@@ -25,10 +26,15 @@ type LocationResponse struct {
 	Results  []Location `json:"results"`
 }
 
-func NewPokeAPI() PokeAPIState {
-	return PokeAPIState{
-		EmptyGetCache: utilities.NewCache(5),
+func NewPokeAPI() (PokeAPIState, error) {
+	duration_30s, err := time.ParseDuration("30s")
+	if err != nil {
+		return PokeAPIState{}, err
 	}
+
+	return PokeAPIState{
+		EmptyGetCache: utilities.NewCache(duration_30s),
+	}, nil
 }
 
 func (pokeAPIState *PokeAPIState) CallMap() (LocationResponse, error) {
