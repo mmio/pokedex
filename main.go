@@ -124,6 +124,15 @@ func commandInspect(config *Config) error {
 	return nil
 }
 
+func commandPokedex(config *Config) error {
+	fmt.Println("Your Pokedex:")
+	for _, pokemonName := range config.pokemons {
+		fmt.Println(" - " + pokemonName)
+	}
+
+	return nil
+}
+
 type cliCommand struct {
 	name        string
 	description string
@@ -175,6 +184,10 @@ func main() {
 				name:        "inspect",
 				description: "Inspect a caught pokemon",
 				callback:    commandInspect,
+			}, "pokedex": {
+				name:        "pokedex",
+				description: "List all caught pokemon",
+				callback:    commandPokedex,
 			},
 		},
 		pokeAPI:   pas,
