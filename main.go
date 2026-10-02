@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"slices"
 
 	"github.com/mmio/pokedex/pokeapi"
 )
@@ -102,6 +103,27 @@ func commandCatch(config *Config) error {
 	return nil
 }
 
+func commandInspect(config *Config) error {
+	if len(config.arguments) == 0 {
+		return errors.New("Inspect needs the name of the pokemon as argument")
+	}
+
+	pokemonName := config.arguments[0]
+
+	if !slices.Contains(config.pokemons, pokemonName) {
+		fmt.Println("You haven't yet caught this pokemon")
+		return nil
+	}
+
+	response, err := config.pokeAPI.CallPokemonInfo(pokemonName)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(response)
+	return nil
+}
+
 type cliCommand struct {
 	name        string
 	description string
@@ -149,6 +171,10 @@ func main() {
 				name:        "cache",
 				description: "Catch a pokemon",
 				callback:    commandCatch,
+			}, "inspect": {
+				name:        "inspect",
+				description: "Inspect a caught pokemon",
+				callback:    commandInspect,
 			},
 		},
 		pokeAPI:   pas,

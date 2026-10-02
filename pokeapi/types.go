@@ -1,6 +1,11 @@
 package pokeapi
 
-import "github.com/mmio/pokedex/utilities"
+import (
+	"fmt"
+	"strconv"
+
+	"github.com/mmio/pokedex/utilities"
+)
 
 type PokeAPIState struct {
 	Next          *string
@@ -485,4 +490,24 @@ type PokemonResponse struct {
 		} `json:"type"`
 	} `json:"types"`
 	PastTypes []interface{} `json:"past_types"`
+}
+
+func (pr PokemonResponse) String() string {
+	stats := ""
+	for _, stat := range pr.Stats {
+		stats += "-" + stat.Stat.Name + ": " + strconv.Itoa(stat.BaseStat) + "\n\t"
+	}
+
+	types := ""
+	for _, pokemonType := range pr.Types {
+		types += "- " + pokemonType.Type.Name + "\n\t"
+	}
+
+	return fmt.Sprintf(`Name: %v
+Height: %v
+Weight: %v
+Stats:
+	%v
+Types:
+	%v`, pr.Name, pr.Height, pr.Weight, stats, types)
 }
