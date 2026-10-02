@@ -130,3 +130,34 @@ func (pokeAPIState *PokeAPIState) CallMapBack() (LocationResponse, error) {
 
 	return locationResponse, nil
 }
+
+func (pokeAPIState *PokeAPIState) CallPokemonInfo(pokemonName string) (PokemonResponse, error) {
+	endpoint := "https://pokeapi.co/api/v2/pokemon/" + pokemonName
+
+	// check cache
+	response, ok := pokeAPIState.EmptyGetCache.Get(endpoint)
+	if ok {
+		pokemonResponse, ok := response.(PokemonResponse)
+		if !ok {
+			return PokemonResponse{}, errors.New("Bad type in cache")
+		}
+
+		return pokemonResponse, nil
+	}
+
+	// cache miss
+	pokemonResponse, err := utilities.CallEndpoint[any, PokemonResponse](
+		http.MethodGet,
+		endpoint,
+		struct{}{},
+	)
+
+	if err != nil {
+		return PokemonResponse{}, err
+	}
+
+	// update
+	pokeAPIState.EmptyGetCache.Add(endpoint, pokemonResponse)
+
+	return pokemonResponse, nil
+}

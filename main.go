@@ -78,6 +78,30 @@ func commandExplore(config *Config) error {
 	return nil
 }
 
+func commandCatch(config *Config) error {
+	if len(config.arguments) == 0 {
+		return errors.New("Catch needs the name of the pokemon as argument")
+	}
+
+	pokemonName := config.arguments[0]
+
+	response, err := config.pokeAPI.CallPokemonInfo(pokemonName)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("Throwing a Pokeball at " + pokemonName + "...")
+
+	if CanICatchIt(response.BaseExperience) {
+		fmt.Println(pokemonName + " was caught!")
+		config.pokemons = append(config.pokemons, pokemonName)
+		return nil
+	}
+
+	fmt.Println(pokemonName + " escaped!")
+	return nil
+}
+
 type cliCommand struct {
 	name        string
 	description string
@@ -89,6 +113,7 @@ type Config struct {
 	commands  map[string]cliCommand
 	command   string
 	arguments []string
+	pokemons  []string
 }
 
 func main() {
@@ -120,11 +145,16 @@ func main() {
 				name:        "explore",
 				description: "Shows pokemons at location",
 				callback:    commandExplore,
+			}, "catch": {
+				name:        "cache",
+				description: "Catch a pokemon",
+				callback:    commandCatch,
 			},
 		},
 		pokeAPI:   pas,
 		command:   "",
 		arguments: []string{},
+		pokemons:  []string{},
 	}
 
 	scanner := bufio.NewScanner(os.Stdin)
